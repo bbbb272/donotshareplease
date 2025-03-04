@@ -298,6 +298,9 @@ async function processSessionScreenshots(session, ctx) {
         console.log(`Processing screenshot ${i + 1}/${totalScreenshots}: ${screenshot}`);
       }
 
+      // Send the screenshot to the chat
+      await ctx.replyWithPhoto({ source: screenshot }, { caption: `Screenshot ${screenshotNumber}` });
+
       // Extract text using Gemini OCR if enabled
       const extractedText = CONFIG.gemini_ocr ?
         await extractTextFromImage(screenshot) :
@@ -414,7 +417,10 @@ bot.on('text', async (ctx) => {
       const processingMsg = await ctx.reply("Processing your request...");
       const screenshotPath = await takeScreenshot();
 
-      // Send document first
+      // Send the screenshot as photo first
+      await ctx.replyWithPhoto({ source: screenshotPath }, { caption: "Screenshot" });
+
+      // Then send as document for better quality download
       await ctx.replyWithDocument({ source: screenshotPath });
 
       // Extract text
@@ -459,6 +465,9 @@ bot.on('text', async (ctx) => {
 
         // Count how many screenshots are in the session now
         const screenshotCount = session.screenshots.filter(Boolean).length;
+
+        // Send the screenshot as a photo to chat immediately
+        await ctx.replyWithPhoto({ source: screenshotPath }, { caption: `Screenshot #${digit}` });
 
         await ctx.reply(`✅ Screenshot #${digit} captured and saved!\n\n📊 Current session status: ${screenshotCount} screenshot(s) stored.\n\nPress another number to take more screenshots, or 0 to process all.`);
       }
